@@ -1,0 +1,97 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    font-family: 'Inter', sans-serif;
+    background: linear-gradient(180deg, #9bddff 0%, #f8f9fa 50%, #ffffff 100%);
+    min-height: 100vh;
+    transition: all 0.3s ease;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Poppins', sans-serif;
+  }
+
+  /* Dark mode styles */
+  .dark body {
+    background: linear-gradient(180deg, #1e3a8a 0%, #1e40af 50%, #1f2937 100%);
+    color: #f3f4f6;
+  }
+
+  .dark h1, .dark h2, .dark h3, .dark h4, .dark h5, .dark h6 {
+    color: #f9fafb;
+  }
+
+  .dark .text-gray-800 {
+    color: #f9fafb !important;
+  }
+
+  .dark .text-gray-700 {
+    color: #e5e7eb !important;
+  }
+
+  .dark .text-gray-600 {
+    color: #d1d5db !important;
+  }
+
+  .dark .text-gray-500 {
+    color: #9ca3af !important;
+  }
+}
+
+@layer components {
+  .glass-effect {
+    @apply backdrop-blur-md bg-white/20 border border-white/30 shadow-lg;
+  }
+  
+  .glass-hover {
+    @apply hover:backdrop-blur-lg hover:bg-white/30 hover:border-white/40 transition-all duration-300;
+  }
+  
+  .gradient-bg {
+    background: linear-gradient(135deg, #9bddff 0%, #f8f9fa 50%, #ffffff 100%);
+  }
+
+  /* Dark mode glass effects */
+  .dark .glass-effect {
+    @apply backdrop-blur-md bg-gray-800/20 border border-gray-700/30 shadow-lg;
+  }
+  
+  .dark .glass-hover {
+    @apply hover:backdrop-blur-lg hover:bg-gray-800/30 hover:border-gray-700/40 transition-all duration-300;
+  }
+  
+  .dark .gradient-bg {
+    background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #1f2937 100%);
+  }
+  
+  .card-hover {
+    @apply hover:shadow-xl hover:scale-105 transition-all duration-300;
+  }
+
+  /* Dark mode card backgrounds */
+  .dark .bg-white\/40 {
+    @apply bg-gray-800/40;
+  }
+
+  .dark .bg-white\/20 {
+    @apply bg-gray-800/20;
+  }
+
+  .dark .border-white\/30 {
+    @apply border-gray-700/30;
+  }
+
+  .dark .border-white\/20 {
+    @apply border-gray-700/20;
+  }
+
+  .dark .divide-white\/20 {
+    @apply divide-gray-700/20;
+  }
+}
+
