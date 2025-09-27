@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext.jsx'
+
 // Import images from assets folder
+
 import sim1 from '../assets/1.png'
 import sim2 from '../assets/2.png'
 import sim3 from '../assets/3.png'

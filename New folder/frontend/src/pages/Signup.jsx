@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext.jsx'
-import api from '../services/api.js'
 
 export default function Signup() {
   const [formData, setFormData] = useState({
@@ -12,61 +11,61 @@ export default function Signup() {
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const { setUser } = useAuth()
+  const [success, setSuccess] = useState('')
+  const { register } = useAuth()
   const navigate = useNavigate()
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    })
+    const { name, value } = e.target
+    
+    // Mobile number validation - only allow 10 digits
+    if (name === 'mobile') {
+      const mobileValue = value.replace(/\D/g, '').slice(0, 10)
+      setFormData({
+        ...formData,
+        [name]: mobileValue
+      })
+    } else {
+      setFormData({
+        ...formData,
+        [name]: value
+      })
+    }
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
     setError('')
+    setSuccess('')
+
+    // Validate mobile number
+    if (formData.mobile.length !== 10) {
+      setError('Mobile number must be exactly 10 digits')
+      setLoading(false)
+      return
+    }
 
     try {
       // Check if name contains "ad" to determine admin role
       const isAdmin = formData.name.toLowerCase().includes('ad')
       
-      // Create a new user object with the form data
-      const newUser = {
-        id: Date.now().toString(), // Simple ID generation
-        name: formData.name,
-        email: formData.email,
-        mobile: formData.mobile,
-        role: isAdmin ? 'admin' : 'employee',
-        password: formData.password
-      }
-      
-      // Store user in localStorage (simulating backend)
-      const existingUsers = JSON.parse(localStorage.getItem('users') || '[]')
-      
-      // Check if email already exists
-      if (existingUsers.find(u => u.email === formData.email)) {
-        setError('Email already exists. Please use a different email.')
-        return
-      }
-      
-      existingUsers.push(newUser)
-      localStorage.setItem('users', JSON.stringify(existingUsers))
-      
-      // Set the user in context
       const userData = {
-        id: newUser.id,
-        name: newUser.name,
-        email: newUser.email,
-        mobile: newUser.mobile,
-        role: newUser.role
+        ...formData,
+        role: isAdmin ? 'admin' : 'employee'
       }
       
-      setUser(userData)
-      localStorage.setItem('token', `user-token-${newUser.id}`)
-      localStorage.setItem('user', JSON.stringify(userData))
+      // Use the register function with password encryption (no email verification)
+      const result = await register(userData)
       
-      navigate('/user-home')
+      if (result.success) {
+        setSuccess('Registration successful! You can now log in.')
+        setTimeout(() => {
+          navigate('/login')
+        }, 2000)
+      } else {
+        setError(result.error)
+      }
     } catch (err) {
       setError('Registration failed. Please try again.')
     } finally {
@@ -94,6 +93,12 @@ export default function Signup() {
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md text-sm">
                 {error}
+              </div>
+            )}
+            
+            {success && (
+              <div className="bg-green-50 border border-green-200 text-green-600 px-4 py-3 rounded-md text-sm">
+                {success}
               </div>
             )}
             
@@ -144,8 +149,12 @@ export default function Signup() {
                 value={formData.mobile}
                 onChange={handleChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Enter your mobile number"
+                placeholder="Enter 10-digit mobile number"
+                maxLength="10"
               />
+              <p className="text-xs text-gray-500 mt-1">
+                {formData.mobile.length}/10 digits
+              </p>
             </div>
             
             <div>

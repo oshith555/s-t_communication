@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext.jsx'
-import api from '../services/api.js'
+import ReCAPTCHA from 'react-google-recaptcha'
 
 export default function Login() {
   const [formData, setFormData] = useState({
@@ -10,8 +10,10 @@ export default function Login() {
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const { setUser } = useAuth()
+  const [captchaVerified, setCaptchaVerified] = useState(false)
+  const { login } = useAuth()
   const navigate = useNavigate()
+  const recaptchaRef = useRef(null)
 
   const handleChange = (e) => {
     setFormData({
@@ -20,10 +22,21 @@ export default function Login() {
     })
   }
 
+  const handleCaptchaChange = (value) => {
+    setCaptchaVerified(!!value)
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
     setError('')
+
+    // Check CAPTCHA
+    if (!captchaVerified) {
+      setError('Please complete the CAPTCHA verification')
+      setLoading(false)
+      return
+    }
 
     try {
       // Handle admin credentials
@@ -32,38 +45,33 @@ export default function Login() {
           id: 'admin-1',
           name: 'Admin User',
           email: 'admin@example.com',
-          role: 'admin'
+          role: 'admin',
+          isActive: true,
+          emailVerified: true
         }
-        setUser(adminUser)
         localStorage.setItem('token', 'admin-token')
         localStorage.setItem('user', JSON.stringify(adminUser))
         navigate('/user-home')
         return
       }
 
-      // Check for existing users in localStorage
-      const existingUsers = JSON.parse(localStorage.getItem('users') || '[]')
-      const foundUser = existingUsers.find(u => u.email === formData.email && u.password === formData.password)
+      // Use the new login function with password encryption
+      const result = await login(formData.email, formData.password)
       
-      if (foundUser) {
-        const userData = {
-          id: foundUser.id,
-          name: foundUser.name,
-          email: foundUser.email,
-          mobile: foundUser.mobile,
-          role: foundUser.role || 'employee'
-        }
-        setUser(userData)
-        localStorage.setItem('token', `user-token-${foundUser.id}`)
-        localStorage.setItem('user', JSON.stringify(userData))
+      if (result.success) {
         navigate('/user-home')
       } else {
-        setError('Invalid email or password')
+        setError(result.error)
       }
     } catch (err) {
       setError('Login failed')
     } finally {
       setLoading(false)
+      // Reset CAPTCHA
+      if (recaptchaRef.current) {
+        recaptchaRef.current.reset()
+        setCaptchaVerified(false)
+      }
     }
   }
 
@@ -142,6 +150,15 @@ export default function Login() {
                   Forgot your password?
                 </a>
               </div>
+            </div>
+
+            <div className="flex justify-center">
+              <ReCAPTCHA
+                ref={recaptchaRef}
+                sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI" // Test key - replace with your actual key
+                onChange={handleCaptchaChange}
+                theme="light"
+              />
             </div>
             
             <div>

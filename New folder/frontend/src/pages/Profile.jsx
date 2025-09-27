@@ -27,10 +27,21 @@ export default function Profile() {
   }, [user])
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    })
+    const { name, value } = e.target
+    
+    // Mobile number validation - only allow 10 digits
+    if (name === 'mobile') {
+      const mobileValue = value.replace(/\D/g, '').slice(0, 10)
+      setFormData({
+        ...formData,
+        [name]: mobileValue
+      })
+    } else {
+      setFormData({
+        ...formData,
+        [name]: value
+      })
+    }
   }
 
   const handleSubmit = async (e) => {
@@ -38,6 +49,13 @@ export default function Profile() {
     setLoading(true)
     setError('')
     setSuccess(false)
+
+    // Validate mobile number
+    if (formData.mobile && formData.mobile.length !== 10) {
+      setError('Mobile number must be exactly 10 digits')
+      setLoading(false)
+      return
+    }
 
     try {
       // Update user in localStorage
@@ -187,7 +205,12 @@ export default function Profile() {
                     value={formData.mobile}
                     onChange={handleChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Enter 10-digit mobile number"
+                    maxLength="10"
                   />
+                  <p className="text-xs text-gray-500 mt-1">
+                    {formData.mobile.length}/10 digits
+                  </p>
                 </div>
                 
                 <div>
